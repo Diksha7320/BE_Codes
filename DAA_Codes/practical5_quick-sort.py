@@ -1,81 +1,60 @@
 import random
-import time
 
-# Function to partition the array for deterministic quicksort
-def deterministic_partition(arr, low, high):
-    pivot = arr[high]
-    i = low - 1
-    comparisons, swaps = 0, 0
-    for j in range(low, high):
+def simple_partition(arr, low, high):
+    pivot = arr[low]  # Choosing the first element as the pivot
+    i = low + 1  # Pointer for the greater element
+    comparisons = 0
+
+    for j in range(low + 1, high + 1):
         comparisons += 1
-        if arr[j] <= pivot:
+        if arr[j] < pivot:
+            arr[i], arr[j] = arr[j], arr[i]  # Swap if element is smaller than the pivot
             i += 1
-            arr[i], arr[j] = arr[j], arr[i]
-            swaps += 1
-    arr[i + 1], arr[high] = arr[high], arr[i + 1]
-    swaps += 1
-    return i + 1, comparisons, swaps
 
-# Deterministic QuickSort
-def deterministic_quicksort(arr, low, high):
-    comparisons, swaps = 0, 0
+    arr[low], arr[i - 1] = arr[i - 1], arr[low]  # Place pivot in correct position
+    return i - 1, comparisons
+
+def simple_deterministic_quicksort(arr, low, high):
+    comparisons = 0
     if low < high:
-        pi, part_comps, part_swaps = deterministic_partition(arr, low, high)
+        pi, part_comps = simple_partition(arr, low, high)
         comparisons += part_comps
-        swaps += part_swaps
-        left_comps, left_swaps = deterministic_quicksort(arr, low, pi - 1)
-        right_comps, right_swaps = deterministic_quicksort(arr, pi + 1, high)
-        comparisons += left_comps + right_comps
-        swaps += left_swaps + right_swaps
-    return comparisons, swaps
 
-# Function to partition the array for randomized quicksort
-def randomized_partition(arr, low, high):
+        comparisons += simple_deterministic_quicksort(arr, low, pi - 1)
+        comparisons += simple_deterministic_quicksort(arr, pi + 1, high)
+
+    return comparisons
+
+def simple_randomized_partition(arr, low, high):
     rand_pivot = random.randint(low, high)
-    arr[rand_pivot], arr[high] = arr[high], arr[rand_pivot]
-    return deterministic_partition(arr, low, high)
+    arr[low], arr[rand_pivot] = arr[rand_pivot], arr[low]  # Swap random pivot with the first element
+    return simple_partition(arr, low, high)
 
-# Randomized QuickSort
-def randomized_quicksort(arr, low, high):
-    comparisons, swaps = 0, 0
+def simple_randomized_quicksort(arr, low, high):
+    comparisons = 0
     if low < high:
-        pi, part_comps, part_swaps = randomized_partition(arr, low, high)
+        pi, part_comps = simple_randomized_partition(arr, low, high)
         comparisons += part_comps
-        swaps += part_swaps
-        left_comps, left_swaps = randomized_quicksort(arr, low, pi - 1)
-        right_comps, right_swaps = randomized_quicksort(arr, pi + 1, high)
-        comparisons += left_comps + right_comps
-        swaps += left_swaps + right_swaps
-    return comparisons, swaps
 
-# Helper function to time and analyze the sorting algorithms
-def analyze_sort(arr, sort_func, name):
-    start_time = time.time()
-    comparisons, swaps = sort_func(arr, 0, len(arr) - 1)
-    end_time = time.time()
-    
-    print(f"\n{name}:")
-    print(f"Comparisons: {comparisons}")
-    print(f"Swaps: {swaps}")
-    print(f"Time taken: {end_time - start_time:.6f} seconds")
-    print("Sorted Array:")
-    print(arr)
+        comparisons += simple_randomized_quicksort(arr, low, pi - 1)
+        comparisons += simple_randomized_quicksort(arr, pi + 1, high)
 
-# Main function to run the analysis
+    return comparisons
+
 def main():
-    arr_size = 10
-    arr = [random.randint(1, 100) for _ in range(arr_size)]
+    # Manual input of array elements
+    arr = list(map(int, input("Enter the elements of the array, separated by spaces: ").split()))
+    print("Original Array:", arr)
 
-    print("Original Array:")
-    print(arr)
-
-    # Deterministic Quick Sort
     arr_copy = arr.copy()
-    analyze_sort(arr_copy, deterministic_quicksort, "Deterministic Quick Sort")
+    det_comparisons = simple_deterministic_quicksort(arr_copy, 0, len(arr_copy) - 1)
+    print("Deterministic Quick Sort - Comparisons:", det_comparisons)
+    print("Sorted Array:", arr_copy)
 
-    # Randomized Quick Sort
     arr_copy = arr.copy()
-    analyze_sort(arr_copy, randomized_quicksort, "Randomized Quick Sort")
+    rand_comparisons = simple_randomized_quicksort(arr_copy, 0, len(arr_copy) - 1)
+    print("Randomized Quick Sort - Comparisons:", rand_comparisons)
+    print("Sorted Array:", arr_copy)
 
 if __name__ == "__main__":
     main()
